@@ -1,0 +1,39 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+_android_arch=aarch64
+
+pkgname=android-${_android_arch}-libmpv
+pkgver=0.34.1
+pkgrel=1
+pkgdesc='Command line video player (library only)'
+arch=('any')
+url='https://mpv.io/'
+license=('GPL')
+options=(!strip libtool staticlibs)
+source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz")
+sha256sums=('32ded8c13b6398310fa27767378193dc1db6d78b006b70dbcbd3123a1445e746')
+makedepends=('android-environment' 'android-pkg-config')
+depends=("android-${_android_arch}-sdl2" "android-${_android_arch}-ffmpeg")
+groups=('android-${_android_arch}-portlibs')
+
+build() {
+  cd mpv-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${_android_arch}
+
+  ./bootstrap.py
+
+  TARGET=${_android_arch} ./waf configure --prefix="${ANDROID_PREFIX}" \
+    --disable-libmpv-shared --enable-libmpv-static --disable-cplayer \
+    --disable-iconv --disable-jpeg --disable-libavdevice \
+    --enable-sdl2 --disable-sdl2-audio --disable-sdl2-gamepad --disable-sdl2-video \
+    --enable-opensles
+
+  ./waf build
+}
+
+package() {
+  cd mpv-$pkgver
+  ./waf install --destdir=$pkgdir
+  ${ANDROID_STRIP} -g "$pkgdir"/${ANDROID_PREFIX_LIB}/*.a
+}

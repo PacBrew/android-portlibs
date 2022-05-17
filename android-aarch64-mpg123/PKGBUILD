@@ -1,0 +1,45 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+_android_arch=aarch64
+
+pkgname=android-${_android_arch}-mpg123
+pkgver=1.25.10
+pkgrel=1
+pkgdesc="A real time MPEG audio decoder for layer 1, 2 and 3"
+arch=('any')
+url="http://sourceforge.net/projects/mpg123"
+license=('LGPL2.1')
+options=(!strip libtool staticlibs)
+source=("http://downloads.sourceforge.net/sourceforge/mpg123/mpg123-${pkgver}.tar.bz2")
+sha256sums=('6c1337aee2e4bf993299851c70b7db11faec785303cfca3a5c3eb5f329ba7023')
+makedepends=('android-configure')
+groups=('android-${_android_arch}-portlibs')
+
+build() {
+  cd mpg123-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${_android_arch}
+
+  autoreconf -fi
+
+  CFLAGS="${CFLAGS} -lc" \
+  android-configure \
+    --with-default-audio=dummy
+
+  # TODO: fix this (use proper patch)...
+  echo "#define HAVE_MMAP 1" >> src/config.h
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd mpg123-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${_android_arch}
+  
+  make DESTDIR="$pkgdir" install
+
+  # remove useless stuff
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_BIN}
+}

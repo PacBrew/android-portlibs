@@ -1,0 +1,45 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+_android_arch=aarch64
+
+pkgname=android-${_android_arch}-freetype
+pkgver=2.10.1
+pkgrel=1
+pkgdesc='FreeType is a freely available software library to render fonts.'
+arch=('any')
+url='https://www.freetype.org/'
+license=(GPL2+ custom:FreeType)
+source=("http://download.savannah.gnu.org/releases/freetype/freetype-$pkgver.tar.gz")
+sha256sums=('3a60d391fd579440561bf0e7f31af2222bc610ad6ce4d9d7bd2165bca8669110')
+options=(!strip libtool staticlibs)
+depends=("android-${_android_arch}-bzip2" "android-${_android_arch}-libpng" "android-${_android_arch}-zlib")
+makedepends=('android-configure')
+groups=('android-${_android_arch}-portlibs')
+
+build() {
+  cd freetype-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${_android_arch}
+
+  android-configure \
+    --with-zlib \
+    --with-bzip2 \
+    --with-png \
+    --enable-freetype-config
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd freetype-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${_android_arch}
+
+  make DESTDIR="$pkgdir" install
+
+  # patch the config script to always output static libraries when not relying on pkg-config
+  sed 's/\$show_static/yes/' -i "$pkgdir"/${ANDROID_PREFIX_BIN}/freetype-config
+
+  # remove useless stuff
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+}
