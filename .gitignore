@@ -7,8 +7,10 @@ pkg
 *.tar.gz
 *.tar.bz2
 *.tar.zst
+*.tar.gz.asc
 *.tgz
 *.zip
 *~
 ps4-repo
 pacbrew-repo
+
