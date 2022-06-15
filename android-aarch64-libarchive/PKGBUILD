@@ -31,6 +31,9 @@ package() {
 
   make DESTDIR="$pkgdir" install
   
+  # install missing "android_lf.h" ?!
+  install -m644 contrib/android/include/android_lf.h "${pkgdir}"/${ANDROID_PREFIX_INCLUDE}
+  
   # remove useless stuff
   source /opt/pacbrew/android/android-env.sh ${_android_arch}
   rm -r "${pkgdir}"/${ANDROID_PREFIX_BIN}
