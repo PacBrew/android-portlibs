@@ -1,0 +1,35 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-opusfile
+pkgver=0.11
+pkgrel=1
+pkgdesc='Library for opening, seeking, and decoding .opus files'
+arch=('any')
+url='https://opus-codec.org/'
+license=(BSD)
+options=(!strip libtool staticlibs)
+source=("https://downloads.xiph.org/releases/opus/opusfile-$pkgver.tar.gz")
+sha256sums=('74ce9b6cf4da103133e7b5c95df810ceb7195471e1162ed57af415fabf5603bf')
+depends=("android-${CARCH}-libogg" "android-${CARCH}-opus")
+makedepends=('android-configure')
+groups=('android-${CARCH}-portlibs')
+
+build() {
+  cd opusfile-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+  android-configure \
+    --disable-http --disable-examples --disable-doc
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd opusfile-$pkgver
+  make DESTDIR="$pkgdir" install
+  
+  # remove useless stuff
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+}

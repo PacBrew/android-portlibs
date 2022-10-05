@@ -1,0 +1,39 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-libarchive
+pkgver=3.3.2
+pkgrel=1
+pkgdesc='library that can create and read several streaming archive format'
+arch=('any')
+url="https://www.libarchive.org"
+license=('Simplified BSD')
+options=(!strip libtool staticlibs)
+source=("http://www.libarchive.org/downloads/libarchive-${pkgver}.tar.gz")
+sha256sums=('ed2dbd6954792b2c054ccf8ec4b330a54b85904a80cef477a1c74643ddafa0ce')
+makedepends=('android-configure')
+groups=('android-${CARCH}-portlibs')
+
+build() {
+  cd libarchive-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+  CFLAGS="$CFLAGS -Icontrib/android/include" \
+    android-configure
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd libarchive-$pkgver
+
+  make DESTDIR="$pkgdir" install
+  
+  # install missing "android_lf.h" ?!
+  install -m644 contrib/android/include/android_lf.h "${pkgdir}"/${ANDROID_PREFIX_INCLUDE}
+  
+  # remove useless stuff
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_BIN}
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+}

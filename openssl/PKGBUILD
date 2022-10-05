@@ -1,0 +1,73 @@
+# Maintainer: Martchus <martchus@gmx.net>
+# Contributor: cpasjuste <cpasjuste@gmail.com>
+
+_ver=1.1.1q
+
+pkgname=android-${CARCH}-openssl
+# use a pacman compatible version scheme
+pkgver=${_ver/[a-z]/.${_ver//[0-9.]/}}
+pkgrel=2
+pkgdesc="The Open Source toolkit for Secure Sockets Layer and Transport Layer Security (Android, $CARCH)"
+arch=('any')
+url='https://www.openssl.org'
+license=('custom:BSD')
+options=('!strip' '!buildflags' 'staticlibs' '!emptydirs')
+depends=('android-sdk' 'android-ndk')
+makedepends=('android-environment' 'android-sdk-build-tools')
+groups=('android-${CARCH}-portlibs')
+source=("https://www.openssl.org/source/openssl-${_ver}.tar.gz")
+sha256sums=('d7939ce614029cdff0b6c20f0e2e5703158a489a72b2507b8bd51bf8c8fd10ca')
+
+build() {
+  cd "${srcdir}/openssl-${_ver}"
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  export PATH="${ANDROID_TOOLCHAIN}/bin:${PATH}"
+
+  export ANDROID_ARCH=android-arm64
+  case "${CARCH}" in
+    armv7a)
+        export ANDROID_ARCH=android-arm
+        ;;
+  esac
+
+  CC=${ANDROID_CC} ./Configure \
+    --prefix="${ANDROID_PREFIX}" \
+    --openssldir="${ANDROID_PREFIX}" \
+    -U__ANDROID_API__ \
+    -D__ANDROID_API__="${ANDROID_MINIMUM_PLATFORM}" \
+    -Wl,--no-allow-shlib-undefined \
+    -Wl,--no-undefined \
+    no-stdio \
+    no-ui-console \
+    threads \
+    no-shared \
+    ${ANDROID_ARCH}
+
+  # get rid of debug printing so the library doesn't depend on stdio (no-stdio and no-ui are not entirely sufficient)
+  sed -i -e 's/\#define TEST_ENG_OPENSSL_RC4_P_INIT//' crypto/engine/eng_openssl.c
+
+  # build only libraries
+  # note: Setting SHLIB_EXT in accordance with qtbase/src/network/ssl/qsslsocket_openssl_symbols.cpp to avoid loading
+  #       system library.
+  make depend
+  make $MAKEFLAGS build_libs
+}
+
+package() {
+  cd "$srcdir/openssl-$_ver"
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  export PATH="$ANDROID_TOOLCHAIN:$PATH"
+
+  # install header files, libraries and license
+  install -d "$pkgdir/${ANDROID_PREFIX_LIB}/"
+  install -D -m0644 libcrypto.a "$pkgdir/${ANDROID_PREFIX_LIB}/"
+  install -D -m0644 libssl.a "$pkgdir/${ANDROID_PREFIX_LIB}/"
+  for pc in libcrypto.pc libssl.pc openssl.pc; do
+    install -D -m0644 $pc "$pkgdir/${ANDROID_PREFIX_LIB}/pkgconfig/$pc"
+  done
+  mkdir -p "$pkgdir/${ANDROID_PREFIX_INCLUDE}"
+  cp -r include/openssl "$pkgdir/${ANDROID_PREFIX_INCLUDE}"
+
+  # strip binaries
+  find "$pkgdir" -name 'lib*.a' -type f -exec "$ANDROID_STRIP" -g {} \;
+}

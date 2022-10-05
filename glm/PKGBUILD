@@ -1,0 +1,21 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-glm
+pkgver=0.9.9.8
+pkgrel=1
+pkgdesc='OpenGL Mathematics (GLM) header only C++ library'
+arch=('any')
+url='https://github.com/g-truc/glm'
+license=(MIT)
+options=(!strip libtool staticlibs)
+source=("${url}/releases/download/${pkgver}/glm-${pkgver}.zip")
+sha256sums=('37e2a3d62ea3322e43593c34bae29f57e3e251ea89f4067506c94043769ade4c')
+makedepends=('android-environment')
+groups=('android-${CARCH}-portlibs')
+
+package() {
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  install -d "$pkgdir/${ANDROID_PREFIX_INCLUDE}/"
+  cp -r ${srcdir}/glm/glm "$pkgdir/${ANDROID_PREFIX_INCLUDE}/"
+}
+

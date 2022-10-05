@@ -1,0 +1,61 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-zlib
+pkgver=1.2.12
+pkgrel=1
+pkgdesc="A compression/decompression Library (android)"
+arch=('any')
+url="http://www.zlib.net/"
+license=('custom:zlib')
+depends=('android-ndk')
+options=(!strip !buildflags staticlibs !emptydirs)
+makedepends=('android-environment' 'android-pkg-config')
+groups=('android-${CARCH}-portlibs')
+source=("http://zlib.net/zlib-${pkgver}.tar.gz")
+md5sums=('5fc414a9726be31427b440b434d05f78')
+
+build() {
+    cd "${srcdir}"/zlib-${pkgver}
+    source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+    # Platform specific patches
+    case "${CARCH}" in
+        x86-64)
+            export CFLAGS="$CFLAGS -fPIC"
+            ;;
+        *)
+            ;;
+    esac
+
+    # zlib
+    ./configure \
+        --prefix=${ANDROID_PREFIX} \
+        --libdir=${ANDROID_PREFIX_LIB} \
+        --includedir=${ANDROID_PREFIX_INCLUDE} \
+        --static
+    make $MAKEFLAGS
+    
+    # minizip
+    cd contrib/minizip
+    autoreconf --force --verbose --install
+    CFLAGS="${CFLAGS} -DUSE_FILE32API" ./configure \
+        --host=${CARCH} \
+        --prefix=${ANDROID_PREFIX} \
+        --libdir=${ANDROID_PREFIX_LIB} \
+        --disable-shared --enable-static
+    make $MAKEFLAGS
+}
+
+package () {
+    cd "${srcdir}"/zlib-${pkgver}
+    source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+    # zlib
+    make DESTDIR="$pkgdir" install
+    rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+    ${ANDROID_STRIP} -g "$pkgdir"/${ANDROID_PREFIX_LIB}/*.a
+    
+    # libminizip
+    cd contrib/minizip
+    make DESTDIR="$pkgdir" install
+}

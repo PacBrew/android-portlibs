@@ -1,0 +1,39 @@
+# Maintainer: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-bzip2
+pkgver=1.0.8
+pkgrel=1
+pkgdesc="A high-quality data compression program (android)"
+arch=('any')
+url="http://sources.redhat.com/bzip2"
+license=("custom")
+depends=('android-ndk')
+options=(!strip !buildflags staticlibs !emptydirs)
+makedepends=('android-environment' 'android-pkg-config')
+groups=('android-${CARCH}-portlibs')
+source=("https://fossies.org/linux/misc/bzip2-${pkgver}.tar.gz")
+sha1sums=('bf7badf7e248e0ecf465d33c2f5aeec774209227')
+
+
+build() {
+  cd "$srcdir"/bzip2-$pkgver
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+  make libbz2.a \
+    CC=${ANDROID_CC} \
+    AR=${ANDROID_AR} \
+    RANLIB=${ANDROID_RANLIB} \
+    PREFIX=${ANDROID_PREFIX} \
+    $MAKEFLAGS
+}
+
+package() {
+    cd "$srcdir"/bzip2-$pkgver
+    source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+    install -m755 -d "${pkgdir}"/${ANDROID_PREFIX_INCLUDE}
+    install -m644 bzlib.h "${pkgdir}"/${ANDROID_PREFIX_INCLUDE}/
+    install -m755 -d "${pkgdir}"/${ANDROID_PREFIX_LIB}
+    install -m644 libbz2.a "${pkgdir}"/${ANDROID_PREFIX_LIB}/
+    ${ANDROID_STRIP} -g "$pkgdir"/${ANDROID_PREFIX_LIB}/*.a
+}

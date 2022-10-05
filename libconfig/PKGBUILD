@@ -1,0 +1,35 @@
+# Maintainer:  cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-libconfig
+pkgver=1.7.3
+pkgrel=1
+pkgdesc='C/C++ Configuration File Library'
+arch=('any')
+url="https://www.hyperrealm.com/libconfig/libconfig.html"
+license=('LGPL')
+options=(!strip libtool staticlibs)
+source=("https://github.com/hyperrealm/libconfig/releases/download/v$pkgver/libconfig-$pkgver.tar.gz")
+sha256sums=('545166d6cac037744381d1e9cc5a5405094e7bfad16a411699bcff40bbb31ee7')
+makedepends=('android-configure')
+groups=('android-${CARCH}-portlibs')
+
+build() {
+  cd libconfig-$pkgver
+
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+  android-configure \
+    --disable-examples
+
+  make $MAKEFLAGS
+}
+
+package() {
+  cd libconfig-$pkgver
+
+  make DESTDIR="$pkgdir" install
+  
+  # remove useless stuff
+  source /opt/pacbrew/android/android-env.sh ${CARCH}
+  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+}

@@ -1,0 +1,47 @@
+# Maintainer: Gonzalo Exequiel Pedone <hipersayan DOT x AT gmail DOT com>
+# Contributor: Daniel Kirchner <daniel AT ekpyron DOT org>
+# Contributor: cpasjuste <cpasjuste@gmail.com>
+
+pkgname=android-${CARCH}-libpng
+pkgver=1.6.37
+pkgrel=1
+pkgdesc="A collection of routines used to create PNG format graphics (android)"
+arch=('any')
+url="http://www.libpng.org/pub/png/libpng.html"
+license=('custom')
+depends=("android-${CARCH}-zlib")
+options=(!strip !buildflags staticlibs !emptydirs)
+makedepends=('android-configure')
+groups=('android-${CARCH}-portlibs')
+source=("http://downloads.sourceforge.net/sourceforge/libpng/libpng-$pkgver.tar.xz")
+sha256sums=('505e70834d35383537b6491e7ae8641f1a4bed1876dbfe361201fc80868d88ca')
+
+build() {
+    cd "$srcdir/libpng-$pkgver"
+    source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+    android-configure \
+        --enable-unversioned-links \
+        --enable-unversioned-libpng-pc \
+        --enable-unversioned-libpng-config
+
+    make $MAKEFLAGS
+}
+
+package () {
+    cd "${srcdir}/libpng-${pkgver}"
+    source /opt/pacbrew/android/android-env.sh ${CARCH}
+
+    make DESTDIR="$pkgdir" install
+    rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+    ${ANDROID_STRIP} -g "$pkgdir"/${ANDROID_PREFIX_LIB}/*.a
+    
+    # fix static link (lz/lm) ?
+    sed -i 's/libs="-lpng16"/libs="-lpng16 -lz -lm"/g' \
+      "$pkgdir"/${ANDROID_PREFIX_BIN}/libpng-config
+    sed -i 's/Libs: -L${libdir} -lpng16/Libs: -L${libdir} -lpng16 -lz -lm/g' \
+      "$pkgdir"/${ANDROID_PREFIX_LIB}/pkgconfig/libpng.pc
+    sed -i 's/Libs: -L${libdir} -lpng16/Libs: -L${libdir} -lpng16 -lz -lm/g' \
+      "$pkgdir"/${ANDROID_PREFIX_LIB}/pkgconfig/libpng16.pc
+}
+
