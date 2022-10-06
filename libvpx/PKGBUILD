@@ -24,22 +24,16 @@ build() {
     cd "${srcdir}"/libvpx-${pkgver}
     source /opt/pacbrew/android/android-env.sh ${CARCH}
 
-    export CC=${ANDROID_CC}
-    export CXX=${ANDROID_CXX}
-    export STRIP=${ANDROID_STRIP}
-
     case "$CARCH" in
-        x86*)
+        aarch64)
+            target=arm64-android-gcc
+            ;;
+        armv7a)
+            target=armv7-android-gcc
             ;;
         *)
-            export AS=${ANDROID_AS}
             ;;
     esac
-
-    target=${CARCH/aarch64/arm64}
-    target=${target/armv7a-eabi/armv7}
-    target=${target/x86-/x86_}
-    target=${target}-android-gcc
 
     configue_opts="
         --target=${target}
@@ -47,8 +41,10 @@ build() {
         --libdir=${ANDROID_PREFIX_LIB}
         --enable-static
         --disable-shared
-        --disable-install-bins
+        --disable-examples
+        --disable-tools
         --disable-docs
+        --disable-install-bins
         --disable-install-docs
         --disable-install-srcs
         --enable-pic
@@ -58,6 +54,7 @@ build() {
         --enable-vp9-highbitdepth
         --enable-vp9-temporal-denoising"
 
+    # TODO: fixme
     case "$CARCH" in
         armv7a)
              configue_opts+="

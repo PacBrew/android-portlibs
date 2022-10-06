@@ -16,12 +16,30 @@ groups=('android-${CARCH}-portlibs')
 source=("https://github.com/fribidi/fribidi/archive/v${pkgver}.tar.gz")
 md5sums=('2acb412d284f5918de3638c1052160dd')
 
+prepare() {
+  cd "${srcdir}"/fribidi-${pkgver}
+  # patch out binaries, as they are not needed
+  sed '/^SUBDIRS/ s/bin //' -i Makefile.am
+  ./autogen.sh
+}
+
 build() {
   cd "${srcdir}"/fribidi-${pkgver}
   source /opt/pacbrew/android/android-env.sh ${CARCH}
 
-  autoreconf -fi
-  android-configure
+  # TODO: fix host cc flags
+  export CFLAGS=""
+  export CXXFLAGS=""
+  export CPPFLAGS=""
+
+  ./configure \
+    --prefix="${ANDROID_PREFIX}" \
+    --host=${CARCH}-linux-android \
+    --target=${CARCH}-linux-android \
+    --libdir=${ANDROID_PREFIX_LIB} \
+    --includedir=${ANDROID_PREFIX_INCLUDE} \
+    --disable-shared --enable-static
+
   MAKEFLAGS="" make
 }
 
@@ -30,7 +48,6 @@ package() {
   source /opt/pacbrew/android/android-env.sh ${CARCH}
 
   make DESTDIR="$pkgdir" install
-  rm -r "${pkgdir}"/${ANDROID_PREFIX_BIN}
-  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+  rm -rf "${pkgdir}"/${ANDROID_PREFIX_SHARE}
   ${ANDROID_STRIP} -g "$pkgdir"/${ANDROID_PREFIX_LIB}/*.a
 }

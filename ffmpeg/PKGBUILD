@@ -31,10 +31,8 @@ build() {
 
     unset CC
     unset CXX
-    unset CFLAGS
-    unset CXXFLAGS
-    unset CHOST
-    unset CARCH
+    #unset CFLAGS
+    #unset CXXFLAGS
 
     case "$CARCH" in
         aarch64)
@@ -78,8 +76,7 @@ build() {
         --enable-version3
         --enable-pic
         --disable-doc
-        --disable-asm
-        --disable-neon
+        --disable-vulkan
         --disable-ffmpeg
         --disable-ffprobe
         --disable-libv4l2
@@ -97,6 +94,8 @@ build() {
         --enable-libvpx
         --enable-libwebp
         --enable-zlib"
+        #--disable-asm
+        #--disable-neon
         #--enable-libx264
 
     # Platform specific patches
