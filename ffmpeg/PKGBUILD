@@ -3,7 +3,7 @@
 
 pkgname=android-${CARCH}-ffmpeg
 pkgver=5.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Complete solution to record, convert and stream audio and video (android)"
 arch=('any')
 url="http://ffmpeg.org/"
@@ -29,31 +29,22 @@ build() {
     cd "${srcdir}"/ffmpeg-${pkgver}
     source /opt/pacbrew/android/android-env.sh ${CARCH}
 
-    unset CC
-    unset CXX
-    #unset CFLAGS
-    #unset CXXFLAGS
-
     case "$CARCH" in
         aarch64)
             target_arch=aarch64
-            export LDFLAGS="-L${ANDROID_PREFIX_LIB} -lm -logg -lvorbis -lcrypto -lssl"
             ;;
         armv7a)
             target_arch=arm
-            export LDFLAGS="-L${ANDROID_PREFIX_LIB} -lm -logg -lvorbis -lcrypto -lssl"
-            #export LDFLAGS="-L${ANDROID_PREFIX_LIB} -ltheoraenc -ltheoradec -logg"
             ;;
         x86)
             target_arch=x86_32
-            export LDFLAGS="-L${ANDROID_PREFIX_LIB} -ltheoraenc -ltheoradec -logg"
             ;;
         x86-64)
             target_arch=x86_64
-            export LDFLAGS="-L${ANDROID_PREFIX_LIB} -ltheoraenc -ltheoradec -logg"
             ;;
     esac
 
+    # TODO: enable asm
     configue_opts="
         --prefix="${ANDROID_PREFIX}"
         --enable-cross-compile
@@ -75,6 +66,8 @@ build() {
         --enable-gpl
         --enable-version3
         --enable-pic
+        --disable-asm
+        --disable-neon
         --disable-doc
         --disable-vulkan
         --disable-ffmpeg
@@ -94,22 +87,8 @@ build() {
         --enable-libvpx
         --enable-libwebp
         --enable-zlib"
-        #--disable-asm
-        #--disable-neon
-        #--enable-libx264
-
-    # Platform specific patches
-    case "$CARCH" in
-        x86)
-             configue_opts+="
-                 --disable-asm"
-            ;;
-        *)
-            ;;
-    esac
 
     ./configure ${configue_opts}
-    make $MAKEFLAGS
 }
 
 package() {

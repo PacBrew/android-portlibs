@@ -4,7 +4,7 @@
 
 pkgname=android-${CARCH}-fribidi
 pkgver=1.0.11
-pkgrel=1
+pkgrel=2
 pkgdesc="A Free Implementation of the Unicode Bidirectional Algorithm (android)"
 arch=('any')
 url="http://fribidi.org"
@@ -27,10 +27,10 @@ build() {
   cd "${srcdir}"/fribidi-${pkgver}
   source /opt/pacbrew/android/android-env.sh ${CARCH}
 
-  # TODO: fix host cc flags
-  export CFLAGS=""
-  export CXXFLAGS=""
-  export CPPFLAGS=""
+  # TODO: fix flags
+  export CFLAGS="-fPIC -O2"
+  export CXXFLAGS="-fPIC -O2"
+  export CPPFLAGS="-fPIC -O2"
 
   ./configure \
     --prefix="${ANDROID_PREFIX}" \
@@ -38,7 +38,8 @@ build() {
     --target=${CARCH}-linux-android \
     --libdir=${ANDROID_PREFIX_LIB} \
     --includedir=${ANDROID_PREFIX_INCLUDE} \
-    --disable-shared --enable-static
+    --disable-shared \
+    --enable-static
 
   MAKEFLAGS="" make
 }
