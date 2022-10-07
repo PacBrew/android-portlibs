@@ -3,7 +3,7 @@
 
 pkgname=android-${CARCH}-ffmpeg
 pkgver=5.0
-pkgrel=2
+pkgrel=3
 pkgdesc="Complete solution to record, convert and stream audio and video (android)"
 arch=('any')
 url="http://ffmpeg.org/"
@@ -39,7 +39,7 @@ build() {
         x86)
             target_arch=x86_32
             ;;
-        x86-64)
+        x86_64)
             target_arch=x86_64
             ;;
     esac
