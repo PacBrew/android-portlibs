@@ -2,7 +2,7 @@
 
 pkgname=android-${CARCH}-sdl2
 pkgver=2.24.1
-pkgrel=1
+pkgrel=2
 pkgdesc="A library for portable low-level access to video, audio, joysticks..."
 arch=('any')
 url="https://libsdl.org"
@@ -30,5 +30,5 @@ package() {
   make DESTDIR="$pkgdir" install
 
   # remove useless stuff
-  rm -r "${pkgdir}"/${ANDROID_PREFIX_SHARE}
+  rm -rf "${pkgdir}"/${ANDROID_PREFIX_SHARE}
 }
